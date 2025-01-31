@@ -11,6 +11,7 @@ flask = "*"
 flask-babel = "*"
 flask-security-too = "*"
 flask-cors = "*"
+gunicorn = "*"
 
 [dev-packages]
 
