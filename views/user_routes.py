@@ -11,20 +11,27 @@ def authenticate(email, password):
         return user
     return None
 
-
 @user_bp.route('/users', methods=['POST'])
 def register():
     data = request.get_json()
     
+    # Add validation for required fields
+    if not data or 'email' not in data or 'password' not in data or 'name' not in data:
+        return jsonify({"message": "Missing required fields"}), 400
+    
+    # Check for existing user
     if User.query.filter_by(email=data['email']).first():
-        return jsonify({"message": "User already exists."}), 400
+        return jsonify({"message": "User already exists."}), 409  # More appropriate status code
     
-    new_user = User(name=data['name'], email=data['email'])
-    new_user.set_password(data['password'])  # Hash the password
-    db.session.add(new_user)
-    db.session.commit()
-    
-    return jsonify({"message": "User registered successfully"}), 201
+    try:
+        new_user = User(name=data['name'], email=data['email'])
+        new_user.set_password(data['password'])
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({"message": "User registered successfully"}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
 
 
 @user_bp.route('/login', methods=['POST'])
